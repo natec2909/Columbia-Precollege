@@ -1,0 +1,321 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from tkinter import *
+from tkinter import ttk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+def center_window(window, width, height):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+    window.geometry(f"{width}x{height}+{x}+{y}")
+
+# Load data
+df = pd.read_csv("fighting_game_kpis.csv")
+expenses_df = pd.read_csv('Gaming_Expenses.csv')
+game_sales_df = pd.read_csv('game_sales_by_country.csv')
+expenses_df.columns = expenses_df.columns.str.strip()
+
+def open_dashboard():
+    welcome_window.withdraw()
+
+    dashboard = Toplevel()
+    dashboard.title("Gaming Sales Data Viewer")
+    center_window(dashboard, 900, 700)
+
+    total_expense_value = expenses_df["Amount $"].sum()
+    total_sales_value = df["Global Revenue ($M)"].sum()
+
+    graph_title = Label(dashboard, text="Graph Area", font=("Arial", 14, "bold"))
+    graph_title.pack(pady=5)
+
+    figure = plt.Figure(figsize=(6, 4))
+    ax = figure.add_subplot(111)
+    canvas = FigureCanvasTkAgg(figure, master=dashboard)
+    canvas.get_tk_widget().pack()
+
+    def show_total_expenses():
+        graph_title.config(text="Game Development Expenses by Category")
+        ax.clear()
+        categories = expenses_df["Category"].str.strip()
+        amounts = expenses_df["Amount $"]
+        ax.bar(categories, amounts)
+        ax.set_title("Game Development Expenses by Category")
+        ax.set_ylabel("Amount ($)")
+        ax.set_xlabel("Category")
+        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        figure.tight_layout()
+        canvas.draw()
+
+    def show_single_game_sales():
+        graph_title.config(text="Our Game's Sales by Country")
+        ax.clear()
+        countries = game_sales_df["Country"]
+        sales = game_sales_df["Sales (Millions)"]
+        ax.bar(countries, sales)
+        ax.set_title("Sales of Our Game by Country")
+        ax.set_ylabel("Sales (Millions)")
+        ax.set_xlabel("Country")
+        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        figure.tight_layout()
+        canvas.draw()
+
+    expense_button = Button(
+        dashboard,
+        text=f"Total Expenses: ${total_expense_value:,.0f} (Click for Breakdown)",
+        command=show_total_expenses,
+        bg="blue",
+        fg="white",
+        font=("Arial", 12, "bold"),
+        wraplength=300
+    )
+    expense_button.pack(pady=10)
+
+    game_sales_button = Button(
+        dashboard,
+        text="Show Our Game Sales by Country",
+        command=show_single_game_sales,
+        bg="orange",
+        fg="white",
+        font=("Arial", 12, "bold")
+    )
+    game_sales_button.pack(pady=10)
+
+    def play_game():
+        print("Play Game button clicked!")
+
+    play_button = Button(
+        dashboard,
+        text= "PLAY GAME",
+        command=play_game,
+        bg="green",
+        fg="white",
+        font=("Arial", 14, "bold"),
+        width=20,
+        height=2
+    )
+    play_button.pack(pady=10)
+
+    add_back_button(dashboard)
+
+welcome_window = Tk()
+welcome_window.title("Launch Dashboard")
+center_window(welcome_window, 400, 300)
+
+welcome_label = Label(welcome_window, text="Welcome to the Gaming Sales Dashboard!")
+welcome_label.pack(pady=20)
+
+# KPI section title
+kpi_label = Label(welcome_window, text="KPI's", font=("Arial", 14, "bold"))
+kpi_label.pack(pady=5)
+
+# KPI button frame
+kpi_frame = Frame(welcome_window)
+kpi_frame.pack(pady=10)
+
+# --- KPI Button Functions (placeholders for now) ---
+def show_avg_session():
+    open_kpi_window("Average Session Time is increasing for fighting games → high engagement.", "fighting_game_kpis.csv", 'Year', 'Avg Session Time (min)', 'Avg Session Time (min)')
+
+def show_twitch_viewership():
+    open_kpi_window("Twitch Viewership more than doubled from 2022 to 2025 → growing online interest.", "fighting_game_kpis.csv", 'Year', 'Twitch Viewership (M)', 'Twitch Viewership (M)')
+
+def show_global_revenue():
+    open_kpi_window("Global Revenue surpassed $2B → strong monetization potential.", "fighting_game_kpis.csv", 'Year', 'Global Revenue ($M)', 'Global Revenue ($M)')
+
+def show_retention():
+    open_kpi_window("Player Retention hit 74% → fighting games are highly sticky.", "fighting_game_kpis.csv", 'Year', 'Player Retention (%)', 'Player Retention (%)')
+
+def show_esports():
+    open_kpi_window("eSports Prize Pool grew from $18M to $45M → strong competitive scene.", "fighting_game_kpis.csv", 'Year', 'eSports Prize Pool ($M)', 'eSports Prize Pool ($M)')
+
+def show_top_region():
+    open_kpi_window("Top Region: Asia → market expansion potential with loyal fans and eSports interest.", "fighting_game_kpis.csv", 'Year', 'Top Region', 'Top Region')
+
+# --- KPI Buttons ---
+Button(kpi_frame, text="Avg Session Time", command=show_avg_session, width=18).grid(row=0, column=0, padx=3, sticky='w')
+Button(kpi_frame, text="Twitch Viewership", command=show_twitch_viewership, width=18).grid(row=0, column=1, padx=3, sticky='w')
+Button(kpi_frame, text="Global Revenue", command=show_global_revenue, width=18).grid(row=0, column=2, padx=3, sticky='w')
+Button(kpi_frame, text="Retention", command=show_retention, width=18).grid(row=0, column=3, padx=3, sticky='w')
+Button(kpi_frame, text="eSports Pool", command=show_esports, width=18).grid(row=0, column=4, padx=3, sticky='w')
+Button(kpi_frame, text="Top Region", command=show_top_region, width=18).grid(row=0, column=5, padx=3, sticky='w')
+
+total_sales_value = df["Global Revenue ($M)"].sum()
+total_expense_value = expenses_df["Amount $"].sum()
+
+def show_total_sales_welcome():
+    welcome_window.withdraw()
+    dashboard = Toplevel()
+    dashboard.title("Gaming Sales Data Viewer - Game Sales by Country")
+    center_window(dashboard, 900, 700)
+
+    graph_title = Label(dashboard, text="Our Game's Sales by Country", font=("Arial", 14, "bold"))
+    graph_title.pack(pady=5)
+
+    figure = plt.Figure(figsize=(6, 4))
+    ax = figure.add_subplot(111)
+    canvas = FigureCanvasTkAgg(figure, master=dashboard)
+    canvas.get_tk_widget().pack()
+
+    countries = game_sales_df["Country"]
+    sales = game_sales_df["Sales (Millions)"]
+    ax.bar(countries, sales)
+    ax.set_title("Sales of Our Game by Country")
+    ax.set_ylabel("Sales (Millions)")
+    ax.set_xlabel("Country")
+    plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+    figure.tight_layout()
+    canvas.draw()
+
+    def play_game():
+        print("Play Game button clicked!")
+
+    play_button = Button(
+        dashboard,
+        text="PLAY GAME",
+        command=play_game,
+        bg="green",
+        fg="white",
+        font=("Arial", 14, "bold"),
+        width=20,
+        height=2
+    )
+    play_button.pack(pady=10)
+
+    add_back_button(dashboard)
+
+def show_total_expenses_welcome():
+    welcome_window.withdraw()
+    dashboard = Toplevel()
+    dashboard.title("Gaming Sales Data Viewer - Expenses")
+    center_window(dashboard, 900, 700)
+
+    graph_title = Label(dashboard, text="Game Development Expenses by Category", font=("Arial", 14, "bold"))
+    graph_title.pack(pady=5)
+
+    figure = plt.Figure(figsize=(6, 4))
+    ax = figure.add_subplot(111)
+    canvas = FigureCanvasTkAgg(figure, master=dashboard)
+    canvas.get_tk_widget().pack()
+
+    categories = expenses_df["Category"].str.strip()
+    amounts = expenses_df["Amount $"]
+    ax.bar(categories, amounts)
+    ax.set_title("Game Development Expenses by Category")
+    ax.set_ylabel("Amount ($)")
+    ax.set_xlabel("Category")
+    plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+    figure.tight_layout()
+    canvas.draw()
+
+    def play_game():
+        print("Play Game button clicked!")
+
+    play_button = Button(
+        dashboard,
+        text="PLAY GAME ",
+        command=play_game,
+        bg="green",
+        fg="white",
+        font=("Arial", 14, "bold"),
+        width=20,
+        height=2
+    )
+    play_button.pack(pady=10)
+
+    add_back_button(dashboard)
+
+
+
+sales_button_welcome = Button(
+    welcome_window,
+    text="Total Sales: 13.2 million",
+    command=show_total_sales_welcome,
+    bg="blue",
+    fg="white",
+    font=("Arial", 12, "bold"),
+    wraplength=300
+)
+sales_button_welcome.pack(pady=10)
+
+expenses_button_welcome = Button(
+    welcome_window,
+    text=f"Total Expenses: ${total_expense_value:,.0f}",
+    command=show_total_expenses_welcome,
+    bg="red",
+    fg="white",
+    font=("Arial", 12, "bold"),
+    wraplength=300
+)
+expenses_button_welcome.pack(pady=10)
+
+play_button_welcome = Button(
+    welcome_window,
+    text="PLAY GAME",
+    bg="green",
+    fg="white",
+    font=("Arial", 14, "bold"),
+    width=20,
+    height=2
+)
+play_button_welcome.pack(pady=15)
+
+def open_kpi_window(title_text, csv_path, x_col, y_col, y_label):
+    df_kpi = pd.read_csv(csv_path)
+    df_fighting = df_kpi[df_kpi['Genre'] == 'Fighting'] if 'Genre' in df_kpi.columns else df_kpi
+
+    kpi_window = Toplevel()
+    kpi_window.title("KPI Viewer")
+    center_window(kpi_window, 900, 600)
+
+    title = Label(kpi_window, text=title_text, font=("Arial", 14, "bold"))
+    title.pack(pady=10)
+
+    fig = plt.Figure(figsize=(6, 4))
+    ax = fig.add_subplot(111)
+
+    if y_col != 'Top Region':
+        ax.plot(df_fighting[x_col], df_fighting[y_col], marker='o')
+        ax.set_xlabel(x_col)
+        ax.set_ylabel(y_label)
+        ax.set_title(y_label + " Over Time")
+    else:
+        region_counts = df_fighting.groupby([x_col, y_col]).size().unstack().fillna(0)
+        region_counts.plot(kind='bar', stacked=True, ax=ax)
+        ax.set_ylabel("Count")
+        ax.set_title("Top Region Over Years")
+
+    fig.tight_layout()
+    canvas = FigureCanvasTkAgg(fig, master=kpi_window)
+    canvas.draw()
+    canvas.get_tk_widget().pack()
+
+    explanation = Label(kpi_window, text=title_text, wraplength=800, font=("Arial", 11))
+    explanation.pack(pady=10)
+
+    Button(
+        kpi_window,
+        text="🔙 Return",
+        command=kpi_window.destroy,
+        bg="gray",
+        fg="white",
+        font=("Arial", 10, "bold")
+    ).pack(pady=5)
+
+def add_back_button(current_window):
+    def go_back():
+        current_window.destroy()
+        welcome_window.deiconify()
+
+    Button(
+        current_window,
+        text="Back to Welcome",
+        command=go_back,
+        bg="gray",
+        fg="white",
+        font=("Arial", 10, "bold")
+    ).pack(pady=10)
+
+
+welcome_window.mainloop()
